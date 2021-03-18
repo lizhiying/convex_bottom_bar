@@ -101,6 +101,8 @@ class ConvexAppBar extends StatefulWidget {
 
   /// Tab Click handler.
   final GestureTapIndexCallback? onTap;
+  final GestureTapIndexCallback? onLongPressStart;
+  final GestureTapIndexCallback? onLongPressEnd;
 
   /// Tab event notifier, can be used to block tap event.
   final TapNotifier? onTapNotify;
@@ -132,6 +134,8 @@ class ConvexAppBar extends StatefulWidget {
 
   /// Height of the AppBar.
   final double? height;
+
+  final double? bottom;
 
   /// Size of the curve line.
   final double? curveSize;
@@ -192,6 +196,8 @@ class ConvexAppBar extends StatefulWidget {
     int? initialActiveIndex,
     bool? disableDefaultTabController,
     GestureTapIndexCallback? onTap,
+    GestureTapIndexCallback? onLongPressStart,
+    GestureTapIndexCallback? onLongPressEnd,
     TapNotifier? onTabNotify,
     TabController? controller,
     Color? color,
@@ -201,6 +207,7 @@ class ConvexAppBar extends StatefulWidget {
     double? height,
     double? curveSize,
     double? top,
+    double? bottom,
     double? elevation,
     double? cornerRadius,
     TabStyle? style,
@@ -217,6 +224,8 @@ class ConvexAppBar extends StatefulWidget {
             curve: curve ?? Curves.easeInOut,
           ),
           onTap: onTap,
+          onLongPressStart: onLongPressStart,
+          onLongPressEnd: onLongPressEnd,
           onTapNotify: onTabNotify,
           controller: controller,
           backgroundColor: backgroundColor,
@@ -227,6 +236,7 @@ class ConvexAppBar extends StatefulWidget {
           height: height,
           curveSize: curveSize,
           top: top,
+          bottom: bottom,
           elevation: elevation,
           cornerRadius: cornerRadius,
           curve: curve ?? Curves.easeInOut,
@@ -255,6 +265,8 @@ class ConvexAppBar extends StatefulWidget {
     this.initialActiveIndex,
     this.disableDefaultTabController = false,
     this.onTap,
+    this.onLongPressStart,
+    this.onLongPressEnd,
     this.onTapNotify,
     this.controller,
     this.backgroundColor,
@@ -262,11 +274,13 @@ class ConvexAppBar extends StatefulWidget {
     this.height,
     this.curveSize,
     this.top,
+    this.bottom,
     this.elevation,
     this.cornerRadius,
     this.curve = Curves.easeInOut,
     this.chipBuilder,
   })  : assert(top == null || top <= 0, 'top should be negative'),
+        assert(bottom == null || bottom <= 0, 'bottom should be negative'),
         assert(initialActiveIndex == null || initialActiveIndex < count,
             'initial index should < $count'),
         assert(cornerRadius == null || cornerRadius >= 0,
@@ -304,6 +318,8 @@ class ConvexAppBar extends StatefulWidget {
     int? initialActiveIndex,
     bool? disableDefaultTabController,
     GestureTapIndexCallback? onTap,
+    GestureTapIndexCallback? onLongPressStart,
+    GestureTapIndexCallback? onLongPressEnd,
     TapNotifier? onTabNotify,
     TabController? controller,
     Color? color,
@@ -313,6 +329,7 @@ class ConvexAppBar extends StatefulWidget {
     double? height,
     double? curveSize,
     double? top,
+    double? bottom,
     double? elevation,
     double? cornerRadius,
     TabStyle? style,
@@ -335,6 +352,8 @@ class ConvexAppBar extends StatefulWidget {
       initialActiveIndex: initialActiveIndex,
       disableDefaultTabController: disableDefaultTabController ?? false,
       onTap: onTap,
+      onLongPressStart: onLongPressStart,
+      onLongPressEnd: onLongPressEnd,
       onTabNotify: onTabNotify,
       controller: controller,
       color: color,
@@ -344,6 +363,7 @@ class ConvexAppBar extends StatefulWidget {
       height: height,
       curveSize: curveSize,
       top: top,
+      bottom: bottom,
       elevation: elevation,
       cornerRadius: cornerRadius,
       style: style,
@@ -526,7 +546,8 @@ class ConvexAppBarState extends State<ConvexAppBar>
   Widget build(BuildContext context) {
     // take care of iPhoneX' safe area at bottom edge
     final additionalBottomPadding =
-        math.max(MediaQuery.of(context).padding.bottom, 0.0);
+        math.max(MediaQuery.of(context).padding.bottom, 0.0) +
+            (widget.bottom ?? 0);
     final convexIndex = isFixed() ? (widget.count ~/ 2) : _currentIndex;
     final active = isFixed() ? convexIndex == _currentIndex : true;
 
@@ -573,6 +594,8 @@ class ConvexAppBarState extends State<ConvexAppBar>
               alignment: offset,
               child: GestureDetector(
                 onTap: () => _onTabClick(convexIndex),
+                onLongPressStart: (detail) => _onLongPressStart(convexIndex),
+                onLongPressEnd: (detail) => _onLongPressEnd(convexIndex),
                 child: _newTab(convexIndex, active),
               )),
         ),
@@ -595,6 +618,8 @@ class ConvexAppBarState extends State<ConvexAppBar>
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => _onTabClick(i),
+          onLongPressStart: (detail) => _onLongPressStart(i),
+          onLongPressEnd: (detail) => _onLongPressEnd(i),
           child: _newTab(i, active),
         ),
       ));
@@ -629,6 +654,20 @@ class ConvexAppBarState extends State<ConvexAppBar>
     animateTo(i);
     _controller?.animateTo(i);
     widget.onTap?.call(i);
+  }
+
+  void _onLongPressStart(int i) {
+    if (_blockEvent(i)) return;
+    animateTo(i);
+    _controller?.animateTo(i);
+    widget.onLongPressStart?.call(i);
+  }
+
+  void _onLongPressEnd(int i) {
+    if (_blockEvent(i)) return;
+    animateTo(i);
+    _controller?.animateTo(i);
+    widget.onLongPressEnd?.call(i);
   }
 
   /// Used to simulate tab event on tab item; This will notify [ConvexAppBar.onTap];
