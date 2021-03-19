@@ -280,7 +280,7 @@ class ConvexAppBar extends StatefulWidget {
     this.curve = Curves.easeInOut,
     this.chipBuilder,
   })  : assert(top == null || top <= 0, 'top should be negative'),
-        assert(bottom == null || bottom <= 0, 'bottom should be negative'),
+        assert(bottom == null || bottom > 0, 'bottom should be negative'),
         assert(initialActiveIndex == null || initialActiveIndex < count,
             'initial index should < $count'),
         assert(cornerRadius == null || cornerRadius >= 0,
